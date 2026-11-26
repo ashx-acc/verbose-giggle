@@ -1,0 +1,279 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard · Chicago Crime Analytics{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div class="hero-copy">
+    <p class="eyebrow">Use Case 2 · 3 · 4 · 5</p>
+    <h1>Crime intelligence,<br><span>made visible.</span></h1>
+    <p class="hero-lede">
+      A decision-support view for the Chicago Police Department: crime trends,
+      arrest outcomes, community hotspots, statistical outliers, and the
+      reporting views that sit on top of the SQLite warehouse.
+    </p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="/dashboard/export">Download PNG report</a>
+      <a class="btn btn-ghost" href="/community">Open Community CRUD</a>
+      <a class="btn btn-ghost" href="/docs" target="_blank" rel="noreferrer">Swagger API</a>
+    </div>
+    <p class="hero-note">
+      Coverage: {{ kpis.year_min }}–{{ kpis.year_max }} ·
+      {{ kpis.community_count }} community areas ·
+      {{ kpis.unique_crime_types }} primary crime types
+    </p>
+  </div>
+
+  <aside class="hero-panel">
+    <div class="hero-panel-head">
+      <span class="pulse"></span>
+      <span>Live warehouse snapshot</span>
+    </div>
+    <dl class="hero-facts">
+      <div>
+        <dt>Total records</dt>
+        <dd>{{ kpis.total_crimes|comma }}</dd>
+      </div>
+      <div>
+        <dt>Arrest rate</dt>
+        <dd>{{ kpis.arrest_rate|pct }}</dd>
+      </div>
+      <div>
+        <dt>Busiest community</dt>
+        <dd>{{ kpis.top_community }}</dd>
+      </div>
+      <div>
+        <dt>Busiest month</dt>
+        <dd>{{ kpis.peak_month_name }}</dd>
+      </div>
+    </dl>
+    <p class="hero-panel-foot">
+      Hour-of-day is synthetic (seed = 42) because the source CSV has no time
+      field. Year-over-year movement is directional because 2016 dominates the sample.
+    </p>
+  </aside>
+</section>
+
+<section class="kpi-grid" aria-label="Key performance indicators">
+  <article class="kpi-card kpi-teal">
+    <span class="kpi-label">Total crimes</span>
+    <strong>{{ kpis.total_crimes|comma }}</strong>
+    <span class="kpi-foot">Cleaned fact rows in <code>crime</code></span>
+  </article>
+  <article class="kpi-card kpi-amber">
+    <span class="kpi-label">Arrest rate</span>
+    <strong>{{ kpis.arrest_rate|pct }}</strong>
+    <span class="kpi-foot">{{ kpis.domestic_rate|pct }} domestic-related</span>
+  </article>
+  <article class="kpi-card kpi-rose">
+    <span class="kpi-label">Top crime type</span>
+    <strong>{{ kpis.top_crime_type|title }}</strong>
+    <span class="kpi-foot">{{ kpis.top_crime_count|comma }} cases · {{ kpis.top_crime_share|pct }}</span>
+  </article>
+  <article class="kpi-card kpi-blue">
+    <span class="kpi-label">Top community</span>
+    <strong>{{ kpis.top_community }}</strong>
+    <span class="kpi-foot">{{ kpis.top_community_count|comma }} reported crimes</span>
+  </article>
+  <article class="kpi-card kpi-slate">
+    <span class="kpi-label">Peak window</span>
+    <strong>{{ kpis.peak_day }} · {{ kpis.peak_month_name }}</strong>
+    <span class="kpi-foot">{{ kpis.peak_hour }}:00 synthetic peak hour</span>
+  </article>
+</section>
+
+<section class="panel insights-panel">
+  <div class="panel-head">
+    <div>
+      <p class="eyebrow">Executive summary</p>
+      <h2>What the data says</h2>
+    </div>
+    <a class="btn btn-small btn-primary" href="/dashboard/export">Export image + insights</a>
+  </div>
+  <ul class="insight-list">
+    {% for insight in insights %}
+    <li>{{ insight }}</li>
+    {% endfor %}
+  </ul>
+</section>
+
+<section class="section-heading">
+  <div>
+    <p class="eyebrow">Use Case 2 & 3</p>
+    <h2>Visual analysis</h2>
+  </div>
+  <p class="section-note">
+    Every chart is generated from the SQLite warehouse with pandas, NumPy,
+    Matplotlib, and Seaborn.
+  </p>
+</section>
+
+<div class="chart-grid">
+  {% for chart in chart_cards %}
+  <figure class="chart-card">
+    <img src="{{ chart.url }}?v={{ chart_version }}" alt="{{ chart.title }}" loading="lazy">
+    <figcaption>
+      <strong>{{ chart.title }}</strong>
+      <span>{{ chart.caption }}</span>
+    </figcaption>
+  </figure>
+  {% endfor %}
+</div>
+
+<div class="split-grid">
+  <section class="panel">
+    <div class="panel-head">
+      <div>
+        <p class="eyebrow">Use Case 2</p>
+        <h2>Top 10 crime categories</h2>
+      </div>
+      <span class="badge">{{ kpis.unique_crime_types }} types</span>
+    </div>
+    {% set max_category = top_categories[0].percentage if top_categories else 1 %}
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Primary type</th>
+          <th class="num">Cases</th>
+          <th>Share</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in top_categories %}
+        <tr>
+          <td>{{ row.primary_type|title }}</td>
+          <td class="num">{{ row.crime_count|comma }}</td>
+          <td>
+            <div class="bar-track">
+              <span class="bar-fill bar-teal" style="width: {{ (row.percentage / max_category * 100)|round(1) }}%"></span>
+            </div>
+            <span class="bar-label">{{ row.percentage|pct }}</span>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <div>
+        <p class="eyebrow">Use Case 2</p>
+        <h2>Top 10 community areas</h2>
+      </div>
+      <span class="badge">{{ kpis.community_count }} areas</span>
+    </div>
+    {% set max_community = top_communities[0].crime_count if top_communities else 1 %}
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Community</th>
+          <th class="num">Crimes</th>
+          <th>Volume</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in top_communities %}
+        <tr>
+          <td>{{ row.community_name }}</td>
+          <td class="num">{{ row.crime_count|comma }}</td>
+          <td>
+            <div class="bar-track">
+              <span class="bar-fill bar-amber" style="width: {{ (row.crime_count / max_community * 100)|round(1) }}%"></span>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+</div>
+
+<div class="split-grid">
+  <section class="panel">
+    <div class="panel-head">
+      <div>
+        <p class="eyebrow">Use Case 3</p>
+        <h2>IQR community outliers</h2>
+      </div>
+      <span class="badge badge-rose">{{ kpis.outlier_count }} outliers</span>
+    </div>
+    <p class="panel-copy">
+      The IQR method flags community areas above the upper fence of
+      <strong>{{ kpis.outlier_upper }}</strong> crimes. These are the strongest
+      candidates for targeted patrols.
+    </p>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Community</th>
+          <th class="num">Crime count</th>
+          <th class="num">Above fence by</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in outliers %}
+        <tr>
+          <td>{{ row.community_name }}</td>
+          <td class="num">{{ row.crime_count|comma }}</td>
+          <td class="num">{{ (row.crime_count - kpis.outlier_upper)|round(1) }}</td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="3" class="empty-state">No IQR outliers in the current sample.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <div>
+        <p class="eyebrow">Use Case 4</p>
+        <h2>SQL view: vw_crime_yearly</h2>
+      </div>
+      <span class="badge">View</span>
+    </div>
+    <p class="panel-copy">
+      Read directly from the database view with
+      <code>pd.read_sql("SELECT * FROM vw_crime_yearly", conn)</code>.
+    </p>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Year</th>
+          <th class="num">Crimes</th>
+          <th class="num">Arrests</th>
+          <th class="num">Rate</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in yearly %}
+        <tr>
+          <td>{{ row.Year }}</td>
+          <td class="num">{{ row.crime_count|comma }}</td>
+          <td class="num">{{ row.arrest_count|comma }}</td>
+          <td class="num">{{ row.arrest_rate|pct }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+</div>
+
+<section class="panel data-note">
+  <div class="data-note-icon">!</div>
+  <div>
+    <h2>Reading the data responsibly</h2>
+    <p>
+      The raw file contains 496 usable rows after pandas skipped one malformed
+      line. 488 of those rows are from 2016, so the year trend is a sample
+      pattern, not a full five-year crime rate. The <code>synthetic_hour</code>
+      column was generated with NumPy seed 42 because the source data has no
+      time-of-day field. Use the dashboard for direction and prioritisation,
+      not for causal claims.
+    </p>
+  </div>
+</section>
+{% endblock %}

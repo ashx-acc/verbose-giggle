@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block title %}Community CRUD · Chicago Crime Analytics{% endblock %}
+
+{% block content %}
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">Use Case 1 · Data pipeline & CRUD</p>
+    <h1>Community-area dimension</h1>
+    <p class="page-lede">
+      Full create, read, update, patch, and delete operations against the
+      <code>community</code> table in SQLite. The table is the City/community
+      dimension referenced by the crime fact table.
+    </p>
+  </div>
+  <div class="page-actions">
+    <button class="btn btn-primary" id="addCommunityButton" type="button">+ Add community</button>
+    <a class="btn btn-ghost" href="/" >Back to dashboard</a>
+  </div>
+</section>
+
+<section class="kpi-grid kpi-grid-small">
+  <article class="kpi-card kpi-teal">
+    <span class="kpi-label">Community rows</span>
+    <strong id="communityCount">{{ community_count|comma }}</strong>
+    <span class="kpi-foot">Dimension table records</span>
+  </article>
+  <article class="kpi-card kpi-amber">
+    <span class="kpi-label">Total population</span>
+    <strong>{{ total_population|comma }}</strong>
+    <span class="kpi-foot">Sum of <code>population</code></span>
+  </article>
+  <article class="kpi-card kpi-blue">
+    <span class="kpi-label">Average density</span>
+    <strong>{{ average_density|num }}</strong>
+    <span class="kpi-foot">People per square mile</span>
+  </article>
+  <article class="kpi-card kpi-slate">
+    <span class="kpi-label">API surface</span>
+    <strong>5 verbs</strong>
+    <span class="kpi-foot">GET · POST · PUT · PATCH · DELETE</span>
+  </article>
+</section>
+
+<section class="panel">
+  <div class="panel-head table-head">
+    <div>
+      <p class="eyebrow">SQLite table</p>
+      <h2>Community records</h2>
+    </div>
+    <div class="toolbar">
+      <label class="search-box">
+        <span aria-hidden="true">⌕</span>
+        <input id="communitySearch" type="search" placeholder="Search name or code…" autocomplete="off">
+      </label>
+      <span class="badge" id="visibleCount">{{ community_count }} shown</span>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table class="data-table data-table-wide">
+      <thead>
+        <tr>
+          <th>Code</th>
+          <th>Community name</th>
+          <th class="num">Population</th>
+          <th class="num">Area (sq mi)</th>
+          <th class="num">Area (sq km)</th>
+          <th class="num">Density / sq mi</th>
+          <th class="num">Density / sq km</th>
+          <th class="actions-col">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="communityTableBody">
+        {% for community in communities %}
+        <tr>
+          <td><span class="code-pill">{{ community.community_code }}</span></td>
+          <td><strong>{{ community.community_name }}</strong></td>
+          <td class="num">{{ community.population|comma }}</td>
+          <td class="num">{{ community.area_sqmile|num }}</td>
+          <td class="num">{{ community.area_sqkm|num }}</td>
+          <td class="num">{{ community.density_per_sqmi|num }}</td>
+          <td class="num">{{ community.density_per_sqkm|num }}</td>
+          <td class="actions-col">
+            <button class="btn btn-tiny btn-ghost" type="button" data-action="edit" data-code="{{ community.community_code }}">Edit</button>
+            <button class="btn btn-tiny btn-ghost" type="button" data-action="patch" data-code="{{ community.community_code }}" data-name="{{ community.community_name }}">Patch</button>
+            <button class="btn btn-tiny btn-danger" type="button" data-action="delete" data-code="{{ community.community_code }}" data-name="{{ community.community_name }}">Delete</button>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="8" class="empty-state">No community rows yet. Use “Add community” to create one.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="panel api-panel">
+  <div class="panel-head">
+    <div>
+      <p class="eyebrow">FastAPI + Python sqlite3</p>
+      <h2>CRUD endpoints</h2>
+    </div>
+    <a class="btn btn-small btn-primary" href="/docs" target="_blank" rel="noreferrer">Open Swagger UI</a>
+  </div>
+  <div class="api-grid">
+    <div class="api-row">
+      <span class="method get">GET</span>
+      <code>/api/community</code>
+      <span>List all rows, optional <code>?search=</code></span>
+    </div>
+    <div class="api-row">
+      <span class="method get">GET</span>
+      <code>/api/community/{code}</code>
+      <span>Read one row or 404</span>
+    </div>
+    <div class="api-row">
+      <span class="method post">POST</span>
+      <code>/api/community</code>
+      <span>Create a row with a unique code</span>
+    </div>
+    <div class="api-row">
+      <span class="method put">PUT</span>
+      <code>/api/community/{code}</code>
+      <span>Full replace of the row</span>
+    </div>
+    <div class="api-row">
+      <span class="method patch">PATCH</span>
+      <code>/api/community/{code}</code>
+      <span>Partial update of only sent fields</span>
+    </div>
+    <div class="api-row">
+      <span class="method delete">DELETE</span>
+      <code>/api/community/{code}</code>
+      <span>Delete the row, returns 204</span>
+    </div>
+    <div class="api-row">
+      <span class="method get">GET</span>
+      <code>/api/community/{code}/crime-summary</code>
+      <span>Crime and arrest counts for one area</span>
+    </div>
+    <div class="api-row">
+      <span class="method get">GET</span>
+      <code>/api/dashboard/insights</code>
+      <span>KPIs and insights as JSON</span>
+    </div>
+  </div>
+</section>
+
+<dialog class="modal" id="communityDialog" aria-labelledby="dialogTitle">
+  <form id="communityForm" class="modal-card">
+    <div class="modal-head">
+      <div>
+        <p class="eyebrow" id="dialogEyebrow">Create</p>
+        <h2 id="dialogTitle">Add community area</h2>
+      </div>
+      <button class="icon-button" type="button" id="closeDialogButton" aria-label="Close dialog">×</button>
+    </div>
+
+    <p class="form-error" id="formError" role="alert" hidden></p>
+
+    <div class="form-grid">
+      <label class="field">
+        <span>Community code <em>*</em></span>
+        <input id="community_code" name="community_code" type="number" min="1" step="1" required>
+        <small>Unique primary key. Not editable after creation.</small>
+      </label>
+      <label class="field">
+        <span>Community name <em>*</em></span>
+        <input id="community_name" name="community_name" type="text" minlength="2" maxlength="120" required>
+        <small>Example: Austin, Loop, Hyde Park.</small>
+      </label>
+      <label class="field">
+        <span>Population</span>
+        <input id="population" name="population" type="number" min="0" step="1">
+      </label>
+      <label class="field">
+        <span>Area (square miles)</span>
+        <input id="area_sqmile" name="area_sqmile" type="number" min="0" step="0.01">
+      </label>
+      <label class="field">
+        <span>Area (square kilometres)</span>
+        <input id="area_sqkm" name="area_sqkm" type="number" min="0" step="0.01">
+      </label>
+      <label class="field">
+        <span>Density per square mile</span>
+        <input id="density_per_sqmi" name="density_per_sqmi" type="number" min="0" step="0.01">
+      </label>
+      <label class="field">
+        <span>Density per square kilometre</span>
+        <input id="density_per_sqkm" name="density_per_sqkm" type="number" min="0" step="0.01">
+      </label>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-ghost" type="button" id="cancelDialogButton">Cancel</button>
+      <button class="btn btn-primary" type="submit" id="saveCommunityButton">Save community</button>
+    </div>
+  </form>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/community.js"></script>
+{% endblock %}

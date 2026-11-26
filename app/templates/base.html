@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Chicago Crime Analytics dashboard and community-area CRUD app.">
+  <title>{% block title %}Chicago Crime Analytics{% endblock %}</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2222%22 fill=%22%230f172a%22/><text x=%2250%22 y=%2268%22 font-size=%2252%22 text-anchor=%22middle%22 fill=%22%2314b8a6%22 font-family=%22Arial%22 font-weight=%22bold%22>CPD</text></svg>">
+  {% block head %}{% endblock %}
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="Chicago Crime Analytics home">
+      <span class="brand-mark">CPD</span>
+      <span class="brand-copy">
+        <strong>Crime Analytics</strong>
+        <small>Accenture × Chicago Police Department</small>
+      </span>
+    </a>
+
+    <nav class="nav" aria-label="Primary navigation">
+      <a class="nav-link {% if active_page == 'dashboard' %}active{% endif %}" href="/">Dashboard</a>
+      <a class="nav-link {% if active_page == 'community' %}active{% endif %}" href="/community">Community CRUD</a>
+      <a class="nav-link" href="/docs" target="_blank" rel="noreferrer">API Docs</a>
+      <span class="status-pill"><span class="status-dot"></span> SQLite · FastAPI</span>
+    </nav>
+  </header>
+
+  <main class="page-shell">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="footer">
+    <span>Chicago Crime Analytics · Capstone project</span>
+    <span>Data source: Chicago Police Department, 2012–2016 sample · SQLite warehouse</span>
+  </footer>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>

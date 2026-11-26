@@ -1,0 +1,237 @@
+1. Background
+
+. For the past few years, Chicago has been considered one of the most dangerous cities in the US. The motivation behind this
+project is to help the Chicago Police Department make better decisions with the use of data. It is important for them to receive
+key insights from this dataset. This dataset contains information from the Chicago Police Department(CPD) from 2012 to 2016.
+
+
+
+. From the dataset the CPD wants to obtain significantly important information like: Most common type of crimes - crime rate
+across the years - Crimes that resulted in Arrests - Top IUCR Codes - Most common areas where crimes occur - Top FBI Codes and
+so forth.
+
+.. C
+
+. CPD wants to draw reliable and definite conclusions regarding % of the criminals are arrested ,which is the most common crime,
+which locality needs more patrols going around the area and accordingly set a specific perimeter for the areas where crime
+scene is extremely high.
+
+tire.c
+
+. CPD has decided to allocate this "crime data analytics" project to Accenture to help it gain detailed insights into the crime trends
+to prevent crimes and to protect the masses.
+
+ch@a
+
+Accenture is responsible for storing, developing and maintaining the data and analytical systems for reduction and prevention of
+crimes in Chicago.
+
+Accenture wishes to leverage Python with Data Analysis libraries like Numpy, Pandas and Matplotlib to fulfill the requirements
+
+
+2. Challenges
+
+. Currently, the CPD has to put in a lot of time and effort in manually performing the analysis of the huge number of crimes which
+get reported every day.
+
+
+. There is no system in place to record and track the crime rates on a real time basis and hence the CPD is not able to contain the
+crime rates within the city in a near-real time fashion which is causing a huge damage to the public and society in general.
+
+
+
+. The senior most officers of the CPD are not getting a big picture understanding of different types of crime happening in the city
+and hence they are not able to come up with preventive measures like having more patrols going around the most vulnerable
+crime areas to mitigate the crimes.
+
+3. Business Need
+
+. The requirement is to stage, process and store the crimes data and transform it to the analytical needs. Finally build
+reports/visualizations (using Matplotlib and Seaborn ) which provide actionable insights.
+
+
+
+. Another requirement is to ingest the crime data to get near real-time recommendations to prevent crimes in the city.
+
+
+
+. Additionally, none of the data should be discarded. In fact, it should be preserved for enabling use-cases related to regulatory
+compliance, public safety, insurance, prevention and deduction of crimes in the city.
+
+
+
+CPD wants Accenture to build a Data Warehousing (MySQL) platform to store all data related to crimes in order to analyze the
+data for better visibility on crime trends, to minimize and prevent crimes and to ensure public safety in whole of Chicago.
+
+
+4. Expectations from the Development Teams
+
+. Considering the Volume, Velocity and Veracity aspects of the data, Accenture has decided to build a Datawarehouse in Mysql.
+
+. Accenture has analyzed various available options and planned to delivered some Proof of Concepts based on the data received
+from the CPD with the help of the teams identified for Python Full Stack Program.
+
+. The teams are expected to design and implement a end-to-end Python data pipeline and web application that ingests and
+processes crime data, stores it in a MySQL database, performs analytical processing using Pandas and NumPy, generates visual
+insights using Matplotlib, and export the reports.
+
+Note: Incase MySQL is not available use SQLite3
+
+
+Use Case 1 - Load and Clean Chicago Crime Data
+
+Objective: Build a data ingestion pipeline to read, clean, and insert crime data into MySQL.
+
+Tasks
+
+1. Load the dataset (CSV) into a Pandas DataFrame
+. Inspect the first 10 rows; show schema and data types.
+
+. How many columns and rows are there?
+
+2. Clean the dataset
+. Convert the Date column into datetime format.
+
+. Identify and handle missing values for key fields .
+
+Standardize categorical fields (strip whitespace, unify case).
+
+3. Generate new features
+. Extract Year, Month, and DayOfWeek from the Date field in chicago_crime_dataset.csv.
+
+. df['Year'] = df['Date'].dt.year
+
+. df['Month'] = df['Date'].dt.month
+
+. df['DayOfWeek'] = df['Date'].dt.day_name()
+
+4. Use NumPy
+. Calculate the percentage of missing values per column.
+
+. Can you drop any columns with > 50% missing?
+
+5. Insert cleaned data into MySQL
+. Design a crime table schema in MySQL.
+
+. Use SQLAlchemy or PyMySQL to write data.
+
+Questions
+. How many unique crime types exist in the dataset?
+
+. Are there anomalies in date formats or obvious outliers?
+
+
+Use Case 2 - Exploratory Analysis & Visualization of Crime
+
+Objective: Analyze trends and patterns using Pandas, NumPy, Matplotlib, and Seaborn.
+
+Tasks
+
+1. Crime Trend Over Years
+. Plot total number of crimes per year.
+
+. Visual interpretation: Is the crime rate rising or decreasing?
+
+2. Crime Distribution by Category
+
+. Bar chart of top 10 crime categories (Primary Type).
+
+. Calculate counts and percentage for each.
+
+3. Arrests and Crime Outcomes
+. What percentage of crimes result in arrest?
+
+. arrest_rate = df['Arrest'].mean0) * 100
+
+4. Heatmap of Crime by Month and Day of Week
+. Use Seaborn heatmap of crime frequency pivoted by Month vs DayOfWeek.
+
+5. Top Community Areas
+. List top 10 community areas with highest crime counts.
+
+. Plot on a bar chart.
+
+Questions
+
+. Which crime category is most frequent?
+
+. Is the arrest rate consistent across different years?
+
+. Which month has the highest crime frequency
+
+Use Case 3 - Statistical Insights & Pattern Detection
+
+Objective: Use numerical and visual analysis to derive deeper insights.
+
+Tasks
+
+
+1. Crime Intensity by Time
+. Use Pandas groupby to get hourly distribution
+
+df['Hour'] = df['Date'].dt.hour
+
+. crimes_by_hour = df.groupby('Hour').size()
+
+. Line plot of crimes per hour of day.
+2. Community Area Clusters Using NumPy
+. Use NumPy functions to compute mean crime per community area.
+
+. Identify which areas are extreme outliers in terms of crime counts(Use box plot to identify the outliers and then IQR method to list
+them)
+
+3. Crime Cross-Correlation
+. Use Pandas .corr() on numeric features (Year, Month, Arrest, etc.)
+
+. Visualize correlation matrix with a heatmap.
+
+Use Case 4 - MySQL Reporting & Integration
+
+Objective: Store, query, and present analytical results from MySQL.
+
+Tasks
+
+1. Design & Populate Summary Tables
+. Create tables and load the data (should be done thru python Mysql Connector).
+
+2. MySQL Queries
+. Write SQL to compute:
+o Crime count per year
+
+o Top 5 crime types and their percentages
+
+o Arrest count per year.
+3. Database Stored Views
+. Create views in MySQL:
+o vw_crime_yearly
+
+o vw_crime_by_category
+
+4. Pandas Integration
+. Read these views into Pandas DataFrames for further analysis:
+
+pd.read_sql("SELECT * FROM vw_crime_yearly", conn)
+
+5. Visualization from MySQL Data
+. Plot SQL extracted data with Matplotlib and Seaborn.
+
+5. Data Model, Metadata and Sample Data
+
+Data Model:
+
+The below data model represents the master and dependent files relationship for the Chicago crimes dataset.
+
+The complete dataset is stored in multiple CSV files.
+
+The master data is contained in file "chicago_crime_dataset.csv"
+
+The datasets listed below are referenced in the master dataset.
+
+. chicago_district_ps_info.csv
+
+. chicago_ward_offices.csv
+
+. iucr_codes.csv
+. chicago_city_community.csv
+
+. chicago_police_beat_info.csv
